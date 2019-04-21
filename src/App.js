@@ -1,85 +1,14 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow
- */
-
 import React, { Component } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions, StatusBar, Picker, Platform, Vibration } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions, StatusBar, Vibration } from "react-native";
 import Sound from 'react-native-sound'
 
-const screen = Dimensions.get('window')
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#07121B"
-  },
-  button: {
-    borderWidth: 10,
-    borderColor: "#B9AAFF",
-    width: screen.width / 2,
-    height: screen.width / 2,
-    borderRadius: screen.width / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 45,
-    color: '#89AAFF',
-  },
-  buttonStop: {
-    borderColor: '#FF851B'
-  },
-  buttonStopText: {
-    color: "#FF851B"
-  },
-  timerText: {
-    color: '#fff',
-    fontSize: 90,
-  },
-  pickerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  picker: {
-    marginVertical: 10,
-    width: 80,
-    ...Platform.select({
-      android: {
-        color: '#fff',
-        backgroundColor: '#07121B',
-        marginLeft: 10,
-      },
-    })
-  },
-  pickerItem: {
-    color: 'white',
-    fontSize: 16,
-  }
-});
-
-const formatNumber = (number) => `0${number}`.slice(-2)
-
-const getRemaining = (time) => {
-  const minutes = Math.floor(time / 60)
-  const seconds = time - minutes * 60
-  return { minutes: formatNumber(minutes), seconds: formatNumber(seconds) }
-}
-
-const createArray = (length) => {
-  const arr = []
-  let i = 0
-  while(i < length) {
-    arr.push(i.toString())
-    i += 1
-  }
-  return arr
-}
+import styles from './styles'
+import {
+  getRemaining,
+  createArray,
+} from './helpers'
+import { buttons } from './theme'
+import { Pickers } from './components'
 
 const AVAILABLE_MINUTES = createArray(10)
 const AVAILABLE_SECONDS = createArray(60)
@@ -156,48 +85,17 @@ export default class App extends Component {
     whoosh.setNumberOfLoops(-1)
   }
 
-  renderPickers = () => {
-    const { selectedMinutes, selectedSeconds } = this.state
-    return (
-      <View style={styles.pickerContainer}>
-        <Picker
-        style={styles.picker}
-        selectedValue={selectedMinutes}
-        onValueChange={itemValue => {
-          this.setState({ selectedMinutes: itemValue })
-        }}
-        mode="dropdown"
-        itemStyle={styles.pickerItem}
-      >
-        {
-          AVAILABLE_MINUTES.map(value => (
-            <Picker.Item key={value} label={value} value={value} />
-          ))
-        }
-      </Picker>
-      <Text style={styles.pickerItem}>Minutos</Text>
-      <Picker
-        style={styles.picker}
-        selectedValue={selectedSeconds}
-        onValueChange={itemValue => {
-          this.setState({ selectedSeconds: itemValue })
-        }}
-        mode="dropdown"
-        itemStyle={styles.pickerItem}
-      >
-        {
-          AVAILABLE_SECONDS.map(value => (
-            <Picker.Item key={value} label={value} value={value} />
-          ))
-        }
-      </Picker>
-      <Text style={styles.pickerItem}>Segundos</Text>
-      </View>
-    )
+  handleChangeMinutes = (itemValue) => {
+    this.setState({ selectedMinutes: itemValue })
+  }
+  
+  handleChangeSeconds = (itemValue) => {
+    this.setState({ selectedSeconds: itemValue })
   }
 
+
   render() {
-    const { remainingSecounds, isRunnig } = this.state
+    const { remainingSecounds, isRunnig, selectedMinutes, selectedSeconds } = this.state
     const { minutes, seconds } = getRemaining(remainingSecounds)
     return (
       <View style={styles.container}>
@@ -205,14 +103,22 @@ export default class App extends Component {
         {
           isRunnig ? (
             <Text style={styles.timerText}>{`${minutes}:${seconds}`}</Text>
-          ) : this.renderPickers()
+          )
+          : <Pickers
+              selectedMinutes={selectedMinutes}
+              selectedSeconds={selectedSeconds}
+              changeMinutes={this.handleChangeMinutes}
+              changeSeconds={this.handleChangeSeconds}
+              minutes={AVAILABLE_MINUTES}
+              seconds={AVAILABLE_SECONDS}
+          />
         }
-        {!isRunnig ?(<TouchableOpacity style={styles.button} onPress={this.start}>
-          <Text style={styles.buttonText}>Start</Text>
+        {!isRunnig ?(<TouchableOpacity style={buttons.primaryButton} onPress={this.start}>
+          <Text style={buttons.primaryButtonText}>Start</Text>
         </TouchableOpacity>)
         :
-        (<TouchableOpacity style={[styles.button, styles.buttonStop]} onPress={this.stop}>
-          <Text style={[styles.buttonText, styles.buttonStopText]}>Stop</Text>
+        (<TouchableOpacity style={[buttons.primaryButton, buttons.secoundButton]} onPress={this.stop}>
+          <Text style={[buttons.secoundButton, styles.secoundButtonText]}>Stop</Text>
         </TouchableOpacity>)
       }
       </View>

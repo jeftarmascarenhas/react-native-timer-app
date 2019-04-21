@@ -7,7 +7,8 @@
  */
 
 import React, { Component } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions, StatusBar, Picker, Platform } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions, StatusBar, Picker, Platform, Vibration } from "react-native";
+import Sound from 'react-native-sound'
 
 const screen = Dimensions.get('window')
 
@@ -46,18 +47,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   picker: {
-    width: 50,
+    marginVertical: 10,
+    width: 80,
     ...Platform.select({
       android: {
         color: '#fff',
         backgroundColor: '#07121B',
         marginLeft: 10,
-      }
+      },
     })
   },
   pickerItem: {
-    color: '#fff',
-    fontSize: 18,
+    color: 'white',
+    fontSize: 16,
   }
 });
 
@@ -96,6 +98,7 @@ export default class App extends Component {
     const { remainingSecounds } = this.state
     const { remainingSecounds: remainingSecoundsPrev } = prevState
     if (remainingSecounds === 0  && remainingSecoundsPrev !== 0 ) {
+      this.stopSignal()
       this.stop()
     }
   }
@@ -127,18 +130,44 @@ export default class App extends Component {
     this.setState({ remainingSecounds: 5, isRunnig: false })
   }
 
+  stopSignal = () => {
+    const DURATION = 1000
+    Vibration.vibrate(DURATION)
+    this.playSound()
+  }
+
+  playSound = () => {
+    Sound.setCategory('Playback')
+    const whoosh = new Sound(require('./assets/audio/advertising.mp3'), (error) => {
+      if (error) {
+        console.log('Failed sound: ', error)
+      }
+      console.log(`Duraction Secounds: ${whoosh.getDuration()} number of channels: ${whoosh.getNumberOfChannels()}`)
+      whoosh.play((success) => {
+        if(success) {
+          console.log('Successfully finished playing')
+        } else {
+          console.log('Playback failed decoding error')
+        }
+      })
+    })
+    whoosh.setVolume(0.5)
+    whoosh.setPan(1)
+    whoosh.setNumberOfLoops(-1)
+  }
+
   renderPickers = () => {
     const { selectedMinutes, selectedSeconds } = this.state
     return (
       <View style={styles.pickerContainer}>
         <Picker
         style={styles.picker}
-        itemStyle={styles.pickerItem}
         selectedValue={selectedMinutes}
         onValueChange={itemValue => {
           this.setState({ selectedMinutes: itemValue })
         }}
         mode="dropdown"
+        itemStyle={styles.pickerItem}
       >
         {
           AVAILABLE_MINUTES.map(value => (
@@ -149,12 +178,12 @@ export default class App extends Component {
       <Text style={styles.pickerItem}>Minutos</Text>
       <Picker
         style={styles.picker}
-        itemStyle={styles.pickerItem}
         selectedValue={selectedSeconds}
         onValueChange={itemValue => {
           this.setState({ selectedSeconds: itemValue })
         }}
         mode="dropdown"
+        itemStyle={styles.pickerItem}
       >
         {
           AVAILABLE_SECONDS.map(value => (

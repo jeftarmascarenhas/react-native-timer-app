@@ -7,7 +7,7 @@
  */
 
 import React, { Component } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions, StatusBar } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions, StatusBar, Picker, Platform } from "react-native";
 
 const screen = Dimensions.get('window')
 
@@ -31,9 +31,33 @@ const styles = StyleSheet.create({
     fontSize: 45,
     color: '#89AAFF',
   },
+  buttonStop: {
+    borderColor: '#FF851B'
+  },
+  buttonStopText: {
+    color: "#FF851B"
+  },
   timerText: {
     color: '#fff',
     fontSize: 90,
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  picker: {
+    width: 50,
+    ...Platform.select({
+      android: {
+        color: '#fff',
+        backgroundColor: '#07121B',
+        marginLeft: 10,
+      }
+    })
+  },
+  pickerItem: {
+    color: '#fff',
+    fontSize: 18,
   }
 });
 
@@ -45,9 +69,25 @@ const getRemaining = (time) => {
   return { minutes: formatNumber(minutes), seconds: formatNumber(seconds) }
 }
 
+const createArray = (length) => {
+  const arr = []
+  let i = 0
+  while(i < length) {
+    arr.push(i.toString())
+    i += 1
+  }
+  return arr
+}
+
+const AVAILABLE_MINUTES = createArray(10)
+const AVAILABLE_SECONDS = createArray(60)
+
 export default class App extends Component {
   state = {
     remainingSecounds: 5,
+    isRunnig: false,
+    selectedMinutes: '0',
+    selectedSeconds: '5'
   }
 
   interval = null
@@ -68,9 +108,15 @@ export default class App extends Component {
   }
 
   start = () => {
+    this.setState(state => ({
+      remainingSecounds:
+        parseInt(state.selectedMinutes, 10) * 60 +
+        parseInt(state.selectedSeconds, 10),
+      isRunnig: true,
+    }))
     this.interval = setInterval(() => {
       this.setState(state => ({
-        remainingSecounds: state.remainingSecounds - 1
+        remainingSecounds: state.remainingSecounds - 1,
       }))
     }, 1000)
   }
@@ -78,19 +124,68 @@ export default class App extends Component {
   stop = () => {
     clearInterval(this.interval)
     this.interval = null
-    this.setState({ remainingSecounds: 5 })
+    this.setState({ remainingSecounds: 5, isRunnig: false })
+  }
+
+  renderPickers = () => {
+    const { selectedMinutes, selectedSeconds } = this.state
+    return (
+      <View style={styles.pickerContainer}>
+        <Picker
+        style={styles.picker}
+        itemStyle={styles.pickerItem}
+        selectedValue={selectedMinutes}
+        onValueChange={itemValue => {
+          this.setState({ selectedMinutes: itemValue })
+        }}
+        mode="dropdown"
+      >
+        {
+          AVAILABLE_MINUTES.map(value => (
+            <Picker.Item key={value} label={value} value={value} />
+          ))
+        }
+      </Picker>
+      <Text style={styles.pickerItem}>Minutos</Text>
+      <Picker
+        style={styles.picker}
+        itemStyle={styles.pickerItem}
+        selectedValue={selectedSeconds}
+        onValueChange={itemValue => {
+          this.setState({ selectedSeconds: itemValue })
+        }}
+        mode="dropdown"
+      >
+        {
+          AVAILABLE_SECONDS.map(value => (
+            <Picker.Item key={value} label={value} value={value} />
+          ))
+        }
+      </Picker>
+      <Text style={styles.pickerItem}>Segundos</Text>
+      </View>
+    )
   }
 
   render() {
-    const { remainingSecounds } = this.state
+    const { remainingSecounds, isRunnig } = this.state
     const { minutes, seconds } = getRemaining(remainingSecounds)
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
-        <Text style={styles.timerText}>{`${minutes}:${seconds}`}</Text>
-        <TouchableOpacity style={styles.button} onPress={this.start}>
+        {
+          isRunnig ? (
+            <Text style={styles.timerText}>{`${minutes}:${seconds}`}</Text>
+          ) : this.renderPickers()
+        }
+        {!isRunnig ?(<TouchableOpacity style={styles.button} onPress={this.start}>
           <Text style={styles.buttonText}>Start</Text>
-        </TouchableOpacity>
+        </TouchableOpacity>)
+        :
+        (<TouchableOpacity style={[styles.button, styles.buttonStop]} onPress={this.stop}>
+          <Text style={[styles.buttonText, styles.buttonStopText]}>Stop</Text>
+        </TouchableOpacity>)
+      }
       </View>
     );
   }

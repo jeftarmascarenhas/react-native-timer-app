@@ -1,5 +1,7 @@
-import React, { Component } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions, StatusBar, Vibration } from "react-native";
+import React, { Component } from 'react'
+import {
+  Text, View, TouchableOpacity, StatusBar, Vibration,
+} from 'react-native'
 import Sound from 'react-native-sound'
 
 import styles from './styles'
@@ -18,32 +20,31 @@ export default class App extends Component {
     remainingSecounds: 5,
     isRunnig: false,
     selectedMinutes: '0',
-    selectedSeconds: '5'
+    selectedSeconds: '5',
   }
 
   interval = null
 
+  componentWillMount() {
+    if (this.interval) {
+      clearInterval(this.interval)
+    }
+  }
+
   componentDidUpdate(prevProps, prevState) {
     const { remainingSecounds } = this.state
     const { remainingSecounds: remainingSecoundsPrev } = prevState
-    if (remainingSecounds === 0  && remainingSecoundsPrev !== 0 ) {
+    if (remainingSecounds === 0 && remainingSecoundsPrev !== 0) {
       this.stopSignal()
       this.stop()
-    }
-  }
-  
-
-  componentWillMount() {
-    if(this.interval) {
-      clearInterval(this.interval)
     }
   }
 
   start = () => {
     this.setState(state => ({
       remainingSecounds:
-        parseInt(state.selectedMinutes, 10) * 60 +
-        parseInt(state.selectedSeconds, 10),
+        parseInt(state.selectedMinutes, 10) * 60
+        + parseInt(state.selectedSeconds, 10),
       isRunnig: true,
     }))
     this.interval = setInterval(() => {
@@ -73,7 +74,7 @@ export default class App extends Component {
       }
       console.log(`Duraction Secounds: ${whoosh.getDuration()} number of channels: ${whoosh.getNumberOfChannels()}`)
       whoosh.play((success) => {
-        if(success) {
+        if (success) {
           console.log('Successfully finished playing')
         } else {
           console.log('Playback failed decoding error')
@@ -88,14 +89,16 @@ export default class App extends Component {
   handleChangeMinutes = (itemValue) => {
     this.setState({ selectedMinutes: itemValue })
   }
-  
+
   handleChangeSeconds = (itemValue) => {
     this.setState({ selectedSeconds: itemValue })
   }
 
 
   render() {
-    const { remainingSecounds, isRunnig, selectedMinutes, selectedSeconds } = this.state
+    const {
+      remainingSecounds, isRunnig, selectedMinutes, selectedSeconds,
+    } = this.state
     const { minutes, seconds } = getRemaining(remainingSecounds)
     return (
       <View style={styles.container}>
@@ -104,24 +107,29 @@ export default class App extends Component {
           isRunnig ? (
             <Text style={styles.timerText}>{`${minutes}:${seconds}`}</Text>
           )
-          : <Pickers
-              selectedMinutes={selectedMinutes}
-              selectedSeconds={selectedSeconds}
-              changeMinutes={this.handleChangeMinutes}
-              changeSeconds={this.handleChangeSeconds}
-              minutes={AVAILABLE_MINUTES}
-              seconds={AVAILABLE_SECONDS}
-          />
+            : (
+              <Pickers
+                selectedMinutes={selectedMinutes}
+                selectedSeconds={selectedSeconds}
+                changeMinutes={this.handleChangeMinutes}
+                changeSeconds={this.handleChangeSeconds}
+                minutes={AVAILABLE_MINUTES}
+                seconds={AVAILABLE_SECONDS}
+              />
+            )
         }
-        {!isRunnig ?(<TouchableOpacity style={buttons.primaryButton} onPress={this.start}>
-          <Text style={buttons.primaryButtonText}>Start</Text>
-        </TouchableOpacity>)
-        :
-        (<TouchableOpacity style={[buttons.primaryButton, buttons.secoundButton]} onPress={this.stop}>
-          <Text style={[buttons.secoundButton, styles.secoundButtonText]}>Stop</Text>
-        </TouchableOpacity>)
+        {!isRunnig ? (
+          <TouchableOpacity style={buttons.primaryButton} onPress={this.start}>
+            <Text style={buttons.primaryButtonText}>Start</Text>
+          </TouchableOpacity>
+        )
+          : (
+            <TouchableOpacity style={[buttons.primaryButton, buttons.secoundButton]} onPress={this.stop}>
+              <Text style={[buttons.secoundButton, styles.secoundButtonText]}>Stop</Text>
+            </TouchableOpacity>
+          )
       }
       </View>
-    );
+    )
   }
 }

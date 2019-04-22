@@ -1,4 +1,4 @@
-export const formatNumber = (number) => `0${number}`.slice(-2)
+export const formatNumber = number => `0${number}`.slice(-2)
 
 export const getRemaining = (time) => {
   const minutes = Math.floor(time / 60)
@@ -9,7 +9,7 @@ export const getRemaining = (time) => {
 export const createArray = (length) => {
   const arr = []
   let i = 0
-  while(i < length) {
+  while (i < length) {
     arr.push(i.toString())
     i += 1
   }
